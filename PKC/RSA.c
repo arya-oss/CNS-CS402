@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <gmp.h>
+#include <time.h>
 
 /**
  * Title - Encryption Decryption using RSA Public Key Cryptography
@@ -49,10 +50,23 @@ void gcd(mpz_t a, mpz_t b, mpz_t r) {
 }
 
 int main () {
-	mpz_t p,q,e,n,phi,d,r,x,y,t1,t2;
-	mpz_inits(p,q,e,n,phi,r,d,x,y,t1,t2, (mpz_ptr)NULL);
-	mpz_set_ui(p, 23);
-	mpz_set_ui(q, 11);
+	mpz_t p,q,e,n,phi,d,r,x,y,t1,t2,random;
+	mpz_inits(p,q,e,n,phi,r,d,x,y,t1,t2,random,(mpz_ptr)NULL);
+
+  gmp_randstate_t rstate;
+  gmp_randinit_mt(rstate);
+  gmp_randseed_ui(rstate, time(NULL));
+
+  mpz_urandomb(random, rstate, 20);
+  mpz_nextprime(p, random);
+  mpz_urandomb(random, rstate, 20);
+  mpz_nextprime(q, random);
+
+  while (mpz_cmp(p, q) == 0) {
+    mpz_urandomb(random, rstate, 20);
+    mpz_nextprime(q, random);
+  }
+
 	mpz_mul(n, p, q);
 	mpz_sub_ui(t1, p, 1);
 	mpz_sub_ui(t2, q, 1);
@@ -64,22 +78,23 @@ int main () {
 		mpz_set(t2, phi);
 		gcd(t1, t2, r);
 		if(mpz_cmp_ui(r, 1) == 0) {
-			printf("Gotcha !\n");
+			// printf("Gotcha !\n");
 			mpz_set_ui(e, i);
 
 			mpz_set(t1, e);
 			mpz_set(t2, phi);
 			ext_gcd(t1, t2, r, d, y);
-			if (mpz_cmp_si(d, 0) > 0){
-				break;
+			if (mpz_cmp_si(d, 0) < 0){
+				mpz_add(d, d, phi);
 			}
-			// break;
+			break;
 		}
 	}
 	gmp_printf("e=%Zd d=%Zd\n", e, d);
-	unsigned char text[128], cipher[128], decipher[128];
-	printf("Enter Text: ");
-	// scanf("%[]s", text);
+	unsigned char text[128], decipher[128];
+  unsigned long int cipher[128];
+  printf("Enter Text: ");
+
 	fgets(text, 128, stdin);
 	for (i=0; i < strlen(text); i++) {
 		mpz_set_ui(p, text[i]);
@@ -87,17 +102,17 @@ int main () {
 		en = mpz_get_ui(q);
 		cipher[i] = en;
 	}
-	printf("Cipher Text: %s\n", cipher);
-	// for(i = 0; i < strlen(cipher); ++i) {
-	// 	printf("%d ", cipher[i]);
-	// }
-	// printf("\n");
-	for (i=0; i < strlen(cipher); i++) {
+	printf("\nCipher Text: ");
+	for(i = 0; i < strlen(text); ++i) {
+		printf("%lx ", cipher[i]);
+	}
+
+	for (i=0; i < strlen(text); i++) {
 		mpz_set_ui(p, cipher[i]);
 		mpz_powm(q, p, d, n);
 		en = mpz_get_ui(q);
-		decipher[i] = en;
+		decipher[i] = (unsigned char)en;
 	}
-	printf("Decipher Text: %s\n", decipher);
+	printf("\nDecipher Text: %s\n", decipher);
 	return 0;
 }

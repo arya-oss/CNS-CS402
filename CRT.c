@@ -66,7 +66,6 @@ int main () {
 		if (mpz_cmp_si(c, 0) < 0) {
 			mpz_add(c, m[i], c);
 		}
-		gmp_printf("%Zd\n", c);
 		mpz_mul(c, c, a[i]);
 		mpz_fdiv_q(t1, mt, m[i]);
 		mpz_mul(c, c, t1);
