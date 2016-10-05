@@ -142,6 +142,16 @@ void SubBytes(uint8_t arr[]) {
 	}
 }
 
+void InvSubBytes(uint8_t arr[]) {
+	uint8_t x,y;
+	for (uint8_t i=0; i < ARR_SIZE; i++) {
+		x = arr[i] >> 4;
+		y = arr[i] << 4;
+		y = y >> 4;
+		arr[i] = inv_s_box[x*ARR_SIZE + y];
+	}
+}
+
 void ShiftRows(uint8_t arr[]) {
 	uint8_t shifts, r, l, tmp;
 	for (uint8_t i=0; i < ARR_SIZE; i+=4) {
@@ -154,29 +164,6 @@ void ShiftRows(uint8_t arr[]) {
 			}
 			arr[r-1] = tmp;
 		}
-	}
-}
-
-void MixColumns(uint8_t arr[]) {
-	uint8_t r, tmp[4];
-	for (uint8_t c=0; c < 4; c++) {
-		tmp[0] = gmult(0x02, arr[c]) ^ gmult(0x03, arr[c+4]) ^ arr[c+8] ^ arr[c+12];
-		tmp[1] = arr[c] ^ gmult(0x02, arr[c+4]) ^ gmult(0x03, arr[c+8]) ^ arr[c+12];
-		tmp[2] = arr[c] ^ arr[c+4] ^ gmult(0x02, arr[c+8]) ^ gmult(0x03, arr[c+12]); 
-		tmp[3] = gmult(0x03, arr[c]) ^ arr[c+4] ^ arr[c+8] ^ gmult(0x02, arr[c+12]);
-		for (int j=0; j<4; j++) {
-			arr[c+4*j] = tmp[j]; 
-		}
-	}
-}
-
-void AddRoundKey(uint8_t arr[], uint8_t word[], uint8_t r) {
-	uint8_t c;
-	for (c = 0; c < Nb; c++) {
-		arr[Nb*0+c] = arr[Nb*0+c] ^ word[4*Nb*r+4*c]; 
-		arr[Nb*1+c] = arr[Nb*1+c] ^ word[4*Nb*r+4*c+1];
-		arr[Nb*2+c] = arr[Nb*2+c] ^ word[4*Nb*r+4*c+2];
-		arr[Nb*3+c] = arr[Nb*3+c] ^ word[4*Nb*r+4*c+3];	
 	}
 }
 
@@ -195,26 +182,39 @@ void InvShiftRows(uint8_t arr[]) {
 	}
 }
 
-void InvMixColumns(uint8_t arr[]) {
+void MixColumns(uint8_t arr[]) {
 	uint8_t r, tmp[4];
 	for (uint8_t c=0; c < 4; c++) {
-		tmp[0] = gmult(0x0E, arr[c]) ^ gmult(0x0B, arr[c+4]) ^ gmult(0x0D, arr[c+8]) ^ (0x09, arr[c+12]);
-		tmp[1] = gmult(0x09, arr[c]) ^ gmult(0x0E, arr[c+4]) ^ gmult(0x0B, arr[c+8]) ^ (0x0D, arr[c+12]);
-		tmp[2] = gmult(0x0D, arr[c]) ^ gmult(0x09, arr[c+4]) ^ gmult(0x0E, arr[c+8]) ^ (0x0B, arr[c+12]);
-		tmp[3] = gmult(0x0B, arr[c]) ^ gmult(0x0D, arr[c+4]) ^ gmult(0x09, arr[c+8]) ^ (0x0E, arr[c+12]);
+		tmp[0] = gmult(0x02, arr[c]) ^ gmult(0x03, arr[c+4]) ^ arr[c+8] ^ arr[c+12];
+		tmp[1] = arr[c] ^ gmult(0x02, arr[c+4]) ^ gmult(0x03, arr[c+8]) ^ arr[c+12];
+		tmp[2] = arr[c] ^ arr[c+4] ^ gmult(0x02, arr[c+8]) ^ gmult(0x03, arr[c+12]); 
+		tmp[3] = gmult(0x03, arr[c]) ^ arr[c+4] ^ arr[c+8] ^ gmult(0x02, arr[c+12]);
 		for (int j=0; j<4; j++) {
 			arr[c+4*j] = tmp[j]; 
 		}
 	}
 }
 
-void InvSubBytes(uint8_t arr[]) {
-	uint8_t x,y;
-	for (uint8_t i=0; i < ARR_SIZE; i++) {
-		x = arr[i] >> 4;
-		y = arr[i] << 4;
-		y = y >> 4;
-		arr[i] = inv_s_box[x*ARR_SIZE + y];
+void InvMixColumns(uint8_t arr[]) {
+	uint8_t r, tmp[4];
+	for (uint8_t c=0; c < 4; c++) {
+		tmp[0] = gmult(0x0E, arr[c]) ^ gmult(0x0B, arr[c+4]) ^ gmult(0x0D, arr[c+8]) ^ gmult(0x09, arr[c+12]);
+		tmp[1] = gmult(0x09, arr[c]) ^ gmult(0x0E, arr[c+4]) ^ gmult(0x0B, arr[c+8]) ^ gmult(0x0D, arr[c+12]);
+		tmp[2] = gmult(0x0D, arr[c]) ^ gmult(0x09, arr[c+4]) ^ gmult(0x0E, arr[c+8]) ^ gmult(0x0B, arr[c+12]);
+		tmp[3] = gmult(0x0B, arr[c]) ^ gmult(0x0D, arr[c+4]) ^ gmult(0x09, arr[c+8]) ^ gmult(0x0E, arr[c+12]);
+		for (int j=0; j<4; j++) {
+			arr[c+4*j] = tmp[j]; 
+		}
+	}
+}
+
+void AddRoundKey(uint8_t arr[], uint8_t word[], uint8_t r) {
+	uint8_t c;
+	for (c = 0; c < Nb; c++) {
+		arr[Nb*0+c] = arr[Nb*0+c] ^ word[4*Nb*r+4*c]; 
+		arr[Nb*1+c] = arr[Nb*1+c] ^ word[4*Nb*r+4*c+1];
+		arr[Nb*2+c] = arr[Nb*2+c] ^ word[4*Nb*r+4*c+2];
+		arr[Nb*3+c] = arr[Nb*3+c] ^ word[4*Nb*r+4*c+3];	
 	}
 }
 
@@ -274,6 +274,8 @@ void Decipher (uint8_t text[], uint8_t dec[],  uint8_t word[]) {
 int main() {
 	uint8_t text[] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10};
 	uint8_t key [] = {0x0f, 0x15, 0x71, 0xc9, 0x47, 0xd9, 0xe8, 0x59, 0x0c, 0xb7, 0xad, 0xd6, 0xaf, 0x7f, 0x67, 0x98};
+
+	uint8_t tex[] = {0x87, 0xF2, 0x4D, 0x97, 0x6E, 0x4C, 0x90, 0xEC, 0x46, 0xE7, 0x4A, 0xC3, 0xA6, 0x8C, 0xD8, 0x95};
 	
 	uint8_t word[Nb*(Nr+1)*4];
 	uint8_t enc[16], dec[16];
@@ -291,5 +293,6 @@ int main() {
 		printf("%2x ", dec[i]);
 	}
 
+	printf("\n");
     return 0;
 }
