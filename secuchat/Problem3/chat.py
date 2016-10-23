@@ -32,10 +32,15 @@ def reciever(r_name):
             break
         enc_msg = base64.b64decode(enc_msg)
         msg = key.decrypt(enc_msg)
-        if msg == "END":
-            conn.close()
-            break
         print r_name, msg
+        if msg == "END":
+            time.sleep(0.5)
+            conn.close()
+            del public_keys[r_name]
+            del connection[r_name]
+            del private_keys[r_name]
+            print 'Chat disconnected with', r_name
+            break
 
 def gen_key():
     rng = Random.new().read
@@ -49,7 +54,11 @@ def controller(name):
     while True:
         cmd = raw_input('cmd $ ')
         parts = cmd.split("#")
-        if len(parts) == 3 and parts[0] == 'connect':
+        if parts[0] == "list":
+            for user in connection.iterkeys():
+                print user
+            print len(connection), 'Active users ..'
+        elif len(parts) == 3 and parts[0] == 'connect':
             sfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 sfd.connect((parts[1], int(parts[2])))
@@ -69,7 +78,7 @@ def controller(name):
             # threading.Lock().release()
             t = threading.Thread(name=r_name, target=reciever, args=(r_name,))
             t.start()
-            t.join()
+            # t.join()
         elif len(parts) == 3 and parts[0] == 'send':
             if public_keys[parts[1]] is None or connection[parts[1]] is None:
                 print '{0} does not exist'.format(parts[1])
@@ -84,14 +93,14 @@ def controller(name):
             except socket.error as err:
                 print err.message
             if parts[2] == "END":
+                time.sleep(0.5)
                 conn.close()
                 # threading.Lock().acquire()
                 del public_keys[parts[1]]
                 del connection[parts[1]]
                 del private_keys[parts[1]]
                 # threading.Lock().release()
-                print "Closing chat..."
-                break
+                print "Closing chat...", parts[1]
         else:
             print '''
 for message: send#sender_name#message
@@ -105,6 +114,9 @@ def responder(sfd, name):
         print 'Got a request from', addr
         data = conn.recv(1024)
         r_name, r_key = data.split('#')
+        if connection.has_key(r_name):
+            print r_name,'already there !!'
+            continue
         r_pub_key = RSA.importKey(r_key)
         key = gen_key()
         public_key = key.publickey().exportKey('PEM')
@@ -116,7 +128,7 @@ def responder(sfd, name):
         # threading.Lock().release()
         t = threading.Thread(name=r_name, target=reciever, args=(r_name,))
         t.start()
-        t.join()
+        # t.join()
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Secure Chat Client terminal version')

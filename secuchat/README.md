@@ -8,9 +8,9 @@
 
     1. [socket](https://docs.python.org/2/library/socket.html)
     2. [PyCrypto](https://www.dlitz.net/software/pycrypto/)
-    3. [base64]((https://docs.python.org/2/library/base64.html)
-    4. [threading]((https://docs.python.org/2/library/threading.html)
-    5. [time]((https://docs.python.org/2/library/time.html)
+    3. [base64](https://docs.python.org/2/library/base64.html)
+    4. [threading](https://docs.python.org/2/library/threading.html)
+    5. [time](https://docs.python.org/2/library/time.html)
 
 ### Problem Statments
 1.  [Problem1](/secuchat/Problem1) A network in which each node can act as client or server for the other computers in the network, allowing shared access to varoius resources as files, peripherals, etc without need of central server.
