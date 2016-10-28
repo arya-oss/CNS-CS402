@@ -71,9 +71,7 @@ def controller(port, pub_key, leader_port):
     conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     conn.bind(('127.0.0.1', port))
     opp_leader = ('127.0.0.1', leader_port)
-    conn.sendto(pub_key.exportKey('PEM'), opp_leader)
-    print 'Pub Key Sent !!'
-    time.sleep(3)
+
     x = [str(i) for i in range(LIMIT)]
     while True:
         msg, addr = conn.recvfrom(1024)
@@ -81,7 +79,7 @@ def controller(port, pub_key, leader_port):
         if msg[0] in x:
             print 'private key chunk recieved'
             recv_pr_chunk[int(msg[0])] = msg[1:]
-        else:
+        elif len(msg):
             name = connection[addr[1]]
             enc_msg = r_pub_key.encrypt(name+'#'+msg, 32)
             enc_msg = ''.join(enc_msg)
@@ -92,12 +90,16 @@ def ask_for_key(conn):
         conn.sendto('need_key', addr)
     print 'requested key'
 
-def controller_recv(port):
+def controller_recv(port, pub_key, leader_port):
     print 'Server for Leaders started..'
     conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     conn.bind(('127.0.0.1', port))
+    opp_leader = ('127.0.0.1', leader_port)
+    time.sleep(5)
+    conn.sendto(pub_key.exportKey('PEM'), opp_leader)
+    print 'Pub Key Sent !!'
     global r_pub_key
-    r_pub_key = conn.recvfrom(1024)
+    r_pub_key, addr = conn.recvfrom(1024)
     r_pub_key = RSA.importKey(r_pub_key)
     print 'Pub Key recieved'
     while True:
@@ -111,9 +113,9 @@ def controller_recv(port):
         msg_chunks = msg.split("#")
         print msg_chunks
         if len(msg_chunks) == 3:
-            addr = rev_connection[msg_chunks[2]]
+            addr = rev_connection[msg_chunks[1]]
             print addr
-            conn.sendto("".join(msg_chunks[:2]), addr)
+            conn.sendto(msg_chunks[0]+': '+msg_chunks[2], addr)
             print 'message from {} to {}'.format(msg_chunks[0], msg_chunks[1])
 
 if __name__ == '__main__':
@@ -138,6 +140,8 @@ if __name__ == '__main__':
     sfd.bind(('127.0.0.1', args.port))
     sfd.listen(5)
     client_index=0
+    t1 = threading.Thread(name='controller_recv', target=controller_recv, args=(args.opp_port,pub_key, args.leader_port))
+    t1.start()
     print 'Server Started'
     while client_index!=LIMIT:
         conn, addr = sfd.accept()
@@ -149,14 +153,12 @@ if __name__ == '__main__':
         conn.close()
         if authenticated:
             connection[addr[1]] = name
-            rev_connection['name'] = addr
+            rev_connection[name] = addr
             client_index += 1
         else:
             print 'Authentication Failed !!'
     sfd.close()
     t = threading.Thread(name='controller', target=controller, args=(args.port, pub_key, args.leader_port))
-    t1 = threading.Thread(name='controller_recv', target=controller_recv, args=(args.opp_port,))
     t.start()
-    t1.start()
     t.join()
     t1.join()
