@@ -2,6 +2,12 @@
 
 ![Chat Screenshot](chat.png)
 
+## Set no. of users in group 
+
+LIMIT = 1 or LIMIT 2
+
+Before sending any messages LIMIT no. of users of connected to each group
+
 ### how to run
 ```
   # Need atleast 4 terminal

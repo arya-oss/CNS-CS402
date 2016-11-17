@@ -17,7 +17,7 @@ import time
 import os
 import hashlib
 
-SHARE_DIR='/home/arya/Public'
+SHARE_DIR=None
 
 BS = 16
 # for padding and unpadding raw data before and After encryption and description
@@ -60,7 +60,7 @@ def secure_recv(enc_msg, key, r_pub_key):
     return msg, r_pub_key.verify(hashed_msg, hash_tuple)
 
 def secure_send(conn, data, key, r_pub_key):
-    '''returns void
+    '''return void
     :conn active socket connection
     :data raw data has to be sent
     :key private key of sender
@@ -192,14 +192,18 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Secure Chat Client terminal version')
     parser.add_argument('ip', type=str, help='IP Address of host')
     parser.add_argument('port', type=int, help='Port address of host')
+    parser.add_argument('share', type=str, help='Abs Path of Shared folder')
 
     args = parser.parse_args()
+    SHARE_DIR = args.share
 
     sfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sfd.bind((args.ip, args.port))
     sfd.listen(5)
+    
     t1 = threading.Thread(name='responder', target=responder, args=(sfd,))
     t2 = threading.Thread(name='controller', target=controller)
+    
     t1.start()
     t2.start()
     t1.join()
