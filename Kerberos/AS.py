@@ -73,6 +73,7 @@ if __name__=='__main__':
 			sock_s.sendto(ticket_s, server_addr[serv_id])
 			print 'Ticket sent to server'
 			# Send ticket to client
+			time.sleep(1)
 			sock.sendto(ticket, addr)
 			print 'Ticket sent to client'
 		else:

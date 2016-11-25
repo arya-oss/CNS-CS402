@@ -182,7 +182,7 @@ int main () {
     cout << "Cipher: " << c1 << c2 << "cipher ends\n";
 
     Point d1 = c1.ScalerMul(nb, a, prime);
-    mpz_sub(d1.y, d1.y, -1);
+    mpz_mul(d1.y, d1.y, -1);
     // mpz_mod(d1.y, d1.y, prime);
     Point d = c2.addition(d1, prime);
     cout <<"Decipher: " << d;

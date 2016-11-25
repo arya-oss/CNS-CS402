@@ -18,22 +18,22 @@ class AESCipher:
 	and unpad removes garbage chars.
 	'''
 	def __init__(self, key):
-	'''
-	:key must be of length 16 bytes (128 bits)
-	'''
+		'''
+		:key must be of length 16 bytes (128 bits)
+		'''
 		self.cipher = AES.new(key)
 	def encrypt(self, data):
-	'''
-	:return encrypted text with base64 encoding
-	:data must be of type of str
-	'''
+		'''
+		:return encrypted text with base64 encoding
+		:data must be of type of str
+		'''
 		raw = pad(data)
 		return base64.b64encode(self.cipher.encrypt(raw))
 	def decrypt(self, data):
-	'''
-	:return decrypted text
-	:data is base64 enoded string
-	'''
+		'''
+		:return decrypted text
+		:data is base64 enoded string
+		'''
 		enc = base64.b64decode(data)
 		return unpad(self.cipher.decrypt(enc))
 
@@ -92,8 +92,10 @@ if __name__=='__main__':
 	own_pgp = PGP(own_pr_key, opp_pub_key)
 	opp_pgp = PGP(opp_pr_key, own_pub_key)
 
-	text = "Hello Friends"
+	text = raw_input('Input text to encrypt: ')
 	cipher = own_pgp.encrypt(text)
+	print 'CIPHER: ', cipher
 	decipher = opp_pgp.decrypt(cipher)
+	print 'DECIPHER: ', decipher
 	# Checking text is equal to decipher after decrypting
 	assert (text == decipher)
